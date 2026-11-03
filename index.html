@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nazim Raihan KN — Astrophysics</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#080a1c;--bg2:#0e1130;--ink:#ebe9f7;--mute:#9a9ac0;--line:#26294f;--amber:#ffb454;--blue:#7ea6ff;--rose:#ff7a9c;
 --serif:'Fraunces',Georgia,serif;--sans:'Figtree',system-ui,sans-serif;color-scheme:dark;
@@ -19,7 +20,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;gap:22px;justify
 nav a{text-decoration:none;color:var(--mute)}nav a:hover{color:var(--amber)}
 .hero{position:relative;min-height:100svh;display:grid;align-items:end;padding:0 5vw 9vh;overflow:hidden}
 #sky{position:absolute;inset:0;width:100%;height:100%}
-.hero{touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}.hero.drag{cursor:grabbing}
+.hero{contain:layout paint;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}.hero.drag{cursor:grabbing}
 .hero-text{position:relative;max-width:760px}
 .hero h1{font:400 clamp(54px,11vw,150px)/.92 var(--serif);margin:0 0 22px;letter-spacing:-.02em}
 .hero h1 i{color:var(--amber)}
@@ -177,8 +178,9 @@ footer p{color:var(--mute);font-size:14px;margin-top:40px}
 <script>
 (function(){
 var cv=document.getElementById('sky'),cx=cv.getContext('2d'),W,H,D=Math.min(devicePixelRatio||1,2),stars=[],parts=[],reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-function size(){var r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*D;cv.height=H*D;cx.setTransform(D,0,0,D,0,0)}
-size();addEventListener('resize',size);
+var lw=0,lh=0;
+function size(){var r=cv.getBoundingClientRect();if(Math.abs(r.width-lw)<1&&Math.abs(r.height-lh)<1)return;W=lw=r.width;H=lh=r.height;cv.width=W*D;cv.height=H*D;cx.setTransform(D,0,0,D,0,0)}
+size();var rt;addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(size,150)});
 var hero=cv.parentNode,ox=0,oy=0,tx=0,ty=0,v=1,flare=0,wave=0,mx=0,my=0,inside=false,drag=false,lx=0,ly=0;
 function ctr(){return W<720?[W*.5,H*.16]:[W*.68,H*.42]}
 if(!reduce){
@@ -200,6 +202,9 @@ for(i=0;i<4200;i++){var ar=i%4;if(ar>1&&Math.random()<.45)continue;var rr=1.5+Ma
 arms.push({r:rr,a:Math.log(rr/1.5)/K+ar*Math.PI/2+gs()*(.3-.02*rr),k:kn,z:kn?1.8+Math.random()*1.6:.9+Math.random()*1.3})}
 for(i=0;i<280;i++){var ar2=i%4;if(ar2>1&&Math.random()<.45)continue;var r3=1.8+Math.pow(Math.random(),1.1)*5.6;
 glows.push({r:r3,a:Math.log(r3/1.5)/K+ar2*Math.PI/2+gs()*.22})}
+function bucket(list,fsf){var m={},o=[];list.forEach(function(p){var k=fsf(p),b=m[k];if(!b){b=m[k]={fs:k,l:[]};o.push(b)}b.l.push(p)});return o}
+var armB=bucket(arms,function(p){return 'rgba('+acol(p)+','+(Math.round(Math.max(.12,.8-p.r*.075)*20)/20)+')'});
+var partB=bucket(parts,function(p){return 'rgba('+col(p.r)+','+(Math.round((.85-p.r*.12)*20)/20)+')'});
 function acol(p){return p.k?'255,115,165':p.r<3.2?'255,205,140':Math.random()<.15?'235,240,255':'135,180,255'}
 function col(r){var t=(r-1.6)/3.4;return t<.3?'255,236,200':t<.6?'255,180,84':'255,122,156'}
 function draw(t){
@@ -210,10 +215,12 @@ var m=W<720,cxp=m?W*.5:W*.68,cyp=m?H*.16:H*.42,R=Math.min(W,H)*(m?.05:.075),tilt
 cx.save();cx.translate(cxp,cyp);cx.rotate(rot);
 var g=cx.createRadialGradient(0,0,R,0,0,R*7);g.addColorStop(0,'rgba(255,180,84,'+.22+')');g.addColorStop(1,'rgba(255,180,84,0)');cx.fillStyle=g;cx.fillRect(-R*7,-R*7,R*14,R*14);
 function pass(front){
-for(var j=0;j<arms.length;j++){var p=arms[j],aa=p.a+T,sn=Math.sin(aa);if((sn>0)!==front)continue;
-cx.fillStyle='rgba('+acol(p)+','+Math.max(.12,.8-p.r*.075)+')';cx.fillRect(Math.cos(aa)*p.r*R,sn*p.r*R*tilt,p.z+.3,p.z+.3)}
-for(var i=0;i<parts.length;i++){var p=parts[i],rr=p.r*R,s=Math.sin(p.a);if((s>0)!==front)continue;
-var x=Math.cos(p.a)*rr,y=s*rr*tilt;cx.fillStyle='rgba('+col(p.r)+','+(.85-p.r*.12)+')';cx.fillRect(x,y,1.8,1.8)}}
+for(var b=0;b<armB.length;b++){var bl=armB[b].l;cx.fillStyle=armB[b].fs;
+for(var j=0;j<bl.length;j++){var p=bl[j],aa=p.a+T,sn=Math.sin(aa);if((sn>0)!==front)continue;
+cx.fillRect(Math.cos(aa)*p.r*R,sn*p.r*R*tilt,p.z+.3,p.z+.3)}}
+for(var c=0;c<partB.length;c++){var cl=partB[c].l;cx.fillStyle=partB[c].fs;
+for(var i=0;i<cl.length;i++){var q=cl[i],rr=q.r*R,s=Math.sin(q.a);if((s>0)!==front)continue;
+cx.fillRect(Math.cos(q.a)*rr,s*rr*tilt,1.8,1.8)}}}
 var g2=cx.createRadialGradient(0,0,R,0,0,R*9);g2.addColorStop(0,'rgba(120,160,255,.07)');g2.addColorStop(1,'rgba(120,160,255,0)');cx.fillStyle=g2;cx.fillRect(-R*9,-R*9,R*18,R*18);
 for(var j2=0;j2<glows.length;j2++){var w=glows[j2],wa=w.a+T,wr=R*(.6+.09*w.r);cx.globalAlpha=.035*(1.2-w.r/9);cx.drawImage(w.r<3?spA:spB,Math.cos(wa)*w.r*R-wr,Math.sin(wa)*w.r*R*tilt-wr,wr*2,wr*2)}
 cx.globalAlpha=1;
@@ -223,9 +230,14 @@ cx.strokeStyle='rgba(255,210,140,'+.75+')';cx.lineWidth=2;cx.beginPath();cx.arc(
 pass(true);
 cx.restore();
 if(!reduce)for(i=0;i<parts.length;i++){var q=parts[i];q.a+=.0035*q.s/Math.pow(q.r,1.5)*2.4*v}T+=.0014*v;
-if(!reduce)requestAnimationFrame(draw)}
-requestAnimationFrame(draw);
-if(reduce)draw(0);
+}
+var raf=0,vis=true,tab=true;
+function loop(t){raf=0;draw(t);if(vis&&tab)raf=requestAnimationFrame(loop)}
+function kick(){if(!raf&&vis&&tab)raf=requestAnimationFrame(loop)}
+if(reduce)draw(0);else{
+if('IntersectionObserver' in window)new IntersectionObserver(function(e){vis=e[0].isIntersecting;kick()},{rootMargin:'100px'}).observe(hero);
+document.addEventListener('visibilitychange',function(){tab=!document.hidden;kick()});
+kick();}
 })();
 </script>
 </body>
