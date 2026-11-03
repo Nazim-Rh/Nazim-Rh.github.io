@@ -20,7 +20,6 @@ nav a{text-decoration:none;color:var(--mute)}nav a:hover{color:var(--amber)}
 .hero{position:relative;min-height:100svh;display:grid;align-items:end;padding:0 5vw 9vh;overflow:hidden}
 #sky{position:absolute;inset:0;width:100%;height:100%}
 .hero{touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}.hero.drag{cursor:grabbing}
-.hint{position:absolute;right:5vw;bottom:3vh;font-size:13px;letter-spacing:.04em;color:var(--mute);pointer-events:none;opacity:.8;transition:opacity .8s}.hint.off{opacity:0}
 .hero-text{position:relative;max-width:760px}
 .hero h1{font:400 clamp(54px,11vw,150px)/.92 var(--serif);margin:0 0 22px;letter-spacing:-.02em}
 .hero h1 i{color:var(--amber)}
@@ -86,10 +85,9 @@ footer p{color:var(--mute);font-size:14px;margin-top:40px}
 <canvas id="sky" aria-hidden="true"></canvas>
 <div class="hero-text">
 <h1>Nazim Raihan <i>KN</i></h1>
-<p>Physics postgraduate focused on astrophysics, with hands-on experience in multi-wavelength data analysis, computation, and observational and simulation-based astrophysics. Research experience at the Indian Institute of Astrophysics (IIA) and the U&nbsp;R&nbsp;Rao Satellite Centre, ISRO. I build the software that turns raw telescope data into catalogues.</p>
+<p>Physics postgraduate focused on astrophysics, with hands-on experience in multi-wavelength data analysis, computation, and observational and simulation-based astrophysics. Research experience at the Indian Institute of Astrophysics (IIA) and the U&nbsp;R&nbsp;Rao Satellite Centre, ISRO.</p>
 <div class="chips"><a href="#research">See my research</a><a href="https://github.com/Nazim-Rh">GitHub</a><a href="mailto:knnazimrh@gmail.com">Email me</a></div>
 </div>
-<div class="hint" id="hint">Drag to spin · press to feed the black hole</div>
 </header>
 
 <section id="about">
@@ -171,7 +169,7 @@ footer p{color:var(--mute);font-size:14px;margin-top:40px}
 </section>
 
 <footer id="contact">
-<h2>Let’s talk about the sky</h2>
+<h2>Let’s talk science</h2>
 <a class="big" href="mailto:knnazimrh@gmail.com">knnazimrh@gmail.com</a>
 <p>Kerala, India · +91 98955 36007 · <a href="https://github.com/Nazim-Rh">github.com/Nazim-Rh</a></p>
 </footer>
@@ -181,15 +179,14 @@ footer p{color:var(--mute);font-size:14px;margin-top:40px}
 var cv=document.getElementById('sky'),cx=cv.getContext('2d'),W,H,D=Math.min(devicePixelRatio||1,2),stars=[],parts=[],reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 function size(){var r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*D;cv.height=H*D;cx.setTransform(D,0,0,D,0,0)}
 size();addEventListener('resize',size);
-var hero=cv.parentNode,hint=document.getElementById('hint'),ox=0,oy=0,tx=0,ty=0,v=1,flare=0,wave=0,mx=0,my=0,inside=false,drag=false,lx=0,ly=0;
+var hero=cv.parentNode,ox=0,oy=0,tx=0,ty=0,v=1,flare=0,wave=0,mx=0,my=0,inside=false,drag=false,lx=0,ly=0;
 function ctr(){return W<720?[W*.5,H*.16]:[W*.68,H*.42]}
 if(!reduce){
 function pt(e){var r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]}
-function used(){hint.classList.add('off')}
 hero.addEventListener('pointermove',function(e){var p=pt(e);mx=p[0];my=p[1];inside=true;tx=(mx/W-.5)*2;ty=(my/H-.5)*2;
-if(drag){var c=ctr(),rx=lx-c[0],ry=ly-c[1],dx=mx-lx,dy=my-ly,da=(rx*dy-ry*dx)/(rx*rx+ry*ry+2500);v=Math.max(-14,Math.min(14,v+da*28));used()}
+if(drag){var c=ctr(),rx=lx-c[0],ry=ly-c[1],dx=mx-lx,dy=my-ly,da=(rx*dy-ry*dx)/(rx*rx+ry*ry+2500);v=Math.max(-14,Math.min(14,v+da*28))}
 lx=mx;ly=my});
-hero.addEventListener('pointerdown',function(e){if(e.target.closest('a'))return;var p=pt(e);mx=lx=p[0];my=ly=p[1];drag=true;flare=1;wave=.001;hero.classList.add('drag');used();try{hero.setPointerCapture(e.pointerId)}catch(_){}});
+hero.addEventListener('pointerdown',function(e){if(e.target.closest('a'))return;var p=pt(e);mx=lx=p[0];my=ly=p[1];drag=true;v=Math.max(-14,Math.min(14,v+(v<0?-4:4)));hero.classList.add('drag');try{hero.setPointerCapture(e.pointerId)}catch(_){}});
 function up(){drag=false;hero.classList.remove('drag')}
 hero.addEventListener('pointerup',up);hero.addEventListener('pointercancel',up);
 hero.addEventListener('pointerleave',function(){inside=false;tx=ty=0});
@@ -207,11 +204,11 @@ function acol(p){return p.k?'255,115,165':p.r<3.2?'255,205,140':Math.random()<.1
 function col(r){var t=(r-1.6)/3.4;return t<.3?'255,236,200':t<.6?'255,180,84':'255,122,156'}
 function draw(t){
 cx.clearRect(0,0,W,H);
-ox+=(tx-ox)*.06;oy+=(ty-oy)*.06;v+=(1-v)*.012;if(drag)flare=Math.max(flare,.45);flare*=.965;if(wave>0){wave+=.016;if(wave>1)wave=0}
+ox+=(tx-ox)*.06;oy+=(ty-oy)*.06;v+=(1-v)*.012;
 for(var i=0;i<stars.length;i++){var s=stars[i];cx.fillStyle='rgba(235,233,247,'+(.35+.35*Math.sin(t/900+s.p))+')';cx.fillRect(s.x*W+ox*s.r*9,s.y*H+oy*s.r*6,s.r,s.r)}
 var m=W<720,cxp=m?W*.5:W*.68,cyp=m?H*.16:H*.42,R=Math.min(W,H)*(m?.05:.075),tilt=Math.max(.14,Math.min(.62,.36+oy*.2)),rot=-.28+ox*.18;
 cx.save();cx.translate(cxp,cyp);cx.rotate(rot);
-var g=cx.createRadialGradient(0,0,R,0,0,R*7);g.addColorStop(0,'rgba(255,180,84,'+(.22+flare*.35)+')');g.addColorStop(1,'rgba(255,180,84,0)');cx.fillStyle=g;cx.fillRect(-R*7,-R*7,R*14,R*14);
+var g=cx.createRadialGradient(0,0,R,0,0,R*7);g.addColorStop(0,'rgba(255,180,84,'+.22+')');g.addColorStop(1,'rgba(255,180,84,0)');cx.fillStyle=g;cx.fillRect(-R*7,-R*7,R*14,R*14);
 function pass(front){
 for(var j=0;j<arms.length;j++){var p=arms[j],aa=p.a+T,sn=Math.sin(aa);if((sn>0)!==front)continue;
 cx.fillStyle='rgba('+acol(p)+','+Math.max(.12,.8-p.r*.075)+')';cx.fillRect(Math.cos(aa)*p.r*R,sn*p.r*R*tilt,p.z+.3,p.z+.3)}
@@ -222,11 +219,10 @@ for(var j2=0;j2<glows.length;j2++){var w=glows[j2],wa=w.a+T,wr=R*(.6+.09*w.r);cx
 cx.globalAlpha=1;
 pass(false);
 cx.fillStyle='#000';cx.beginPath();cx.arc(0,0,R,0,6.283);cx.fill();
-cx.strokeStyle='rgba(255,210,140,'+Math.min(1,.75+flare*.25)+')';cx.lineWidth=2+flare*3;cx.beginPath();cx.arc(0,0,R*1.04,0,6.283);cx.stroke();
+cx.strokeStyle='rgba(255,210,140,'+.75+')';cx.lineWidth=2;cx.beginPath();cx.arc(0,0,R*1.04,0,6.283);cx.stroke();
 pass(true);
-if(wave>0){cx.save();cx.scale(1,tilt);cx.strokeStyle='rgba(255,200,120,'+(.55*(1-wave))+')';cx.lineWidth=2.5;cx.beginPath();cx.arc(0,0,R*(1.2+wave*8),0,6.283);cx.stroke();cx.restore()}
 cx.restore();
-if(!reduce)for(i=0;i<parts.length;i++){var q=parts[i];q.a+=.0035*q.s/Math.pow(q.r,1.5)*2.4*v*(1+flare*2)}T+=.0014*v*(1+flare*2);
+if(!reduce)for(i=0;i<parts.length;i++){var q=parts[i];q.a+=.0035*q.s/Math.pow(q.r,1.5)*2.4*v}T+=.0014*v;
 if(!reduce)requestAnimationFrame(draw)}
 requestAnimationFrame(draw);
 if(reduce)draw(0);
